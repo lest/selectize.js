@@ -478,6 +478,40 @@ $.extend(Selectize.prototype, {
 			case KEY_DELETE:
 				self.deleteSelection(e);
 				return;
+			case KEY_PAGEUP:
+				if (self.$activeOption) {
+					self.ignoreHover = true;
+					var pageSize = Math.round(self.$dropdown_content.innerHeight() / self.$activeOption.outerHeight()) - 1;
+					var $prev = self.getAdjacentOption(self.$activeOption, -pageSize);
+					if ($prev.length) self.setActiveOption($prev, true, true);
+				}
+				e.preventDefault();
+				return;
+			case KEY_PAGEDOWN:
+				if (self.$activeOption) {
+					self.ignoreHover = true;
+					var pageSize = Math.round(self.$dropdown_content.innerHeight() / self.$activeOption.outerHeight()) - 1;
+					var $next = self.getAdjacentOption(self.$activeOption, pageSize);
+					if ($next.length) self.setActiveOption($next, true, true);
+				}
+				e.preventDefault();
+				return;
+			case KEY_HOME:
+				if (self.$activeOption) {
+					self.ignoreHover = true;
+					var $home = this.$dropdown.find('[data-selectable]:first');
+					if ($home.length) self.setActiveOption($home, true, true);
+				    e.preventDefault();
+				}
+				return;
+			case KEY_END:
+				if (self.$activeOption) {
+					self.ignoreHover = true;
+					var $end = this.$dropdown.find('[data-selectable]:last');
+					if ($end.length) self.setActiveOption($end, true, true);
+					e.preventDefault();
+				}
+				return;
 		}
 
 		if ((self.isFull() || self.isInputHidden) && !(IS_MAC ? e.metaKey : e.ctrlKey)) {
@@ -1451,7 +1485,7 @@ $.extend(Selectize.prototype, {
 
 		if (this.isSetup) {
 			for (var i = 0; i < this.items.length; i++) {
-				this.addItem(this.items);
+				this.addItem(this.items[i]);
 			}
 		}
 
@@ -1520,10 +1554,10 @@ $.extend(Selectize.prototype, {
 			for (i = 0, n = self.items.length; i < n; i++) {
 				options.push('<option value="' + escape_html(self.items[i]) + '" selected="selected"></option>');
 			}
-			if (!options.length && !this.$input.attr('multiple')) {
+			if (!options.length) {
 				options.push('<option value="" selected="selected"></option>');
 			}
-			self.$input.html(options.join(''));
+			self.$input.empty().html(options.join(''));
 		} else {
 			self.$input.val(self.getValue());
 			self.$input.attr('value',self.$input.val());
@@ -1910,7 +1944,11 @@ $.extend(Selectize.prototype, {
 
 		// add mandatory attributes
 		if (templateName === 'option' || templateName === 'option_create') {
-			html = html.replace(regex_tag, '<$1 data-selectable');
+		    if (data[self.settings.optDisabled]) {
+		        html = html.replace(regex_tag, '<$1 data-disabled');
+		    } else {
+		        html = html.replace(regex_tag, '<$1 data-selectable');
+		    }
 		}
 		if (templateName === 'optgroup') {
 			id = data[self.settings.optgroupValueField] || '';
